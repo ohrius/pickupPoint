@@ -18,11 +18,15 @@ import org.apache.commons.io.IOUtils;
 import org.json.*;
 
 
+/**
+ * @author Morten Ohren
+ *
+ * Program som tar inn ett gitt postnummer og viser alle pickup-points i nærheten.
+ * hvert pickup-point vil vise navn, adresse, by og åpningstider.
+ * Bring endpoint: https://api.bring.com/pickuppoint/api/pickuppoint/NO/postalCode/{POSTNUMMER}.json
+ */
 public class pickupMain {
-	/*	https://api.bring.com/pickuppoint/api/pickuppoint/NO/postalCode/{POSTNUMMER}.json
-	 *	Over er endpoint for Bring sine pickup-points, hvor du kan hente posten din. Gitt et postnummer viser den de nærmeste stedene du kan hente post. 
-	 *	Lag et enkelt program som tar inn et postnummer, og viser ut en enkel liste på konsollen med alle pickup-points. Hvert pickup-point skal vise navn, adresse, by og åpningstid. 
-	 *	Bruk maks 2 timer på dette.  
+	/*	 
 	 */
 	
 	//Variabler for å lage JSON-url
@@ -55,11 +59,11 @@ public class pickupMain {
 	        	try {
 		    	    // Hent postnummer fra bruker
 		        	postnummer = Integer.parseInt(JPostnummer.getText());
-		        	//Sjekk om postnummer har gyldig lengde
+		        	// Sjekk om postnummer har gyldig lengde
 		        	if(String.valueOf(postnummer).length() == 4) {
-		        	//Lag JSON-URL
+		        	// Sett sammen JSON-URL
 		        	String JSONUri = JSONSTART+postnummer+JSONSLUTT;
-		        	//Behandle JSON-data
+		        	// Behandler JSON-data
 					JSONObject obj = new JSONObject(IOUtils.toString(new URL(JSONUri), Charset.forName("UTF-8")));
 		        	JSONArray arr = obj.getJSONArray("pickupPoint");
 		        	for(int i =0; i<arr.length();i++) {
@@ -67,7 +71,7 @@ public class pickupMain {
 		        		String adresse = arr.getJSONObject(i).getString("address");
 		        		String by = arr.getJSONObject(i).getString("city");
 		        		String åpningstider = arr.getJSONObject(i).getString("openingHoursNorwegian");
-		        		//Print resultat
+		        		// Print resultat
 			        	System.out.println(navn+ ", " + adresse + ", " + by + ", " + åpningstider + "\n");
 		        	}
 		        	}
