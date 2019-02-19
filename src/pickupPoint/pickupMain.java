@@ -7,11 +7,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UIManager.*;
 
 import org.apache.commons.io.IOUtils;
 import org.json.*;
@@ -27,56 +33,79 @@ import org.json.*;
 public class pickupMain {
 
 	final private static String BRINGJSON = "https://api.bring.com/pickuppoint/api/pickuppoint/NO/postalCode/%s.json";
-	private static String postnummer;
 	private static pickupPoint pickupPoint;
+	private static JTextArea JPickupPoints;
+	private static JFrame frame;
 
 	public static void main(String[] args) {
+		lagGui();
+	}
 
-		// Start GUI
-		JFrame.setDefaultLookAndFeelDecorated(true);
-		JFrame frame = new JFrame("Postnummer");
+	private static void lagGui() {
+		try {
+			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(info.getName())) {
+					UIManager.setLookAndFeel(info.getClassName());
+					break;
+				}
+			}
+		} catch (Exception e) {
+			JFrame.setDefaultLookAndFeelDecorated(true);
+		}
+
+		frame = new JFrame("Vis nærliggende pickuppoints");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new GridLayout(1, 3, 20, 20));
+		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
+		JPanel JTop = new JPanel(new GridLayout(0, 3, 20, 10));
+		JPanel JBottom = new JPanel(new GridLayout(0, 1));
 		JLabel JLabelPostnummer = new JLabel("Skriv inn postnummer", SwingConstants.CENTER);
 		JTextField JPostnummer = new JTextField(4);
 		JButton JButtonOk = new JButton("Ok");
 
-		frame.add(JLabelPostnummer);
-		frame.add(JPostnummer);
-		frame.add(JButtonOk);
+		JPickupPoints = new JTextArea(20, 20);
+		JPickupPoints.setEditable(false);
+		JScrollPane JScroll = new JScrollPane(JPickupPoints, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		JTop.add(JLabelPostnummer);
+		JTop.add(JPostnummer);
+		JTop.add(JButtonOk);
+		JBottom.add(JScroll);
+
+		frame.add(JTop);
+		frame.add(JBottom);
 
 		JButtonOk.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					postnummer = JPostnummer.getText();
-					if (postnummer.length() == 4) {
-						String JSONUri = String.format(BRINGJSON, postnummer);
-						JSONObject obj = new JSONObject(IOUtils.toString(new URL(JSONUri), Charset.forName("UTF-8")));
-						JSONArray arr = obj.getJSONArray("pickupPoint");
-						for (int i = 0; i < arr.length(); i++) {
-							pickupPoint = new pickupPoint(arr.getJSONObject(i).getString("name"),
-									arr.getJSONObject(i).getString("address"), arr.getJSONObject(i).getString("city"),
-									arr.getJSONObject(i).getString("openingHoursNorwegian"));
-							System.out.println(pickupPoint.toString());
-						}
-					} else {
-						System.out.println("Postnummer må være 4 siffer!");
-					}
-				} catch (JSONException | IOException e1) {
-					e1.printStackTrace();
-				} catch (NumberFormatException ex) {
-					System.out.println("Input må være et nummer!");
-				}
-
+				visPickupPoints(JPostnummer.getText());
 			}
 		});
 
 		frame.pack();
 		frame.setVisible(true);
-		// end GUI
+	}
+
+	private static void visPickupPoints(String postnummer) {
+
+		try {
+			String JSONUri = String.format(BRINGJSON, postnummer);
+			JSONObject obj = new JSONObject(IOUtils.toString(new URL(JSONUri), Charset.forName("UTF-8")));
+			JSONArray arr = obj.getJSONArray("pickupPoint");
+			JPickupPoints.setText("");
+			for (int i = 0; i < arr.length(); i++) {
+				pickupPoint = new pickupPoint(arr.getJSONObject(i).getString("name"),
+						arr.getJSONObject(i).getString("address"), arr.getJSONObject(i).getString("city"),
+						arr.getJSONObject(i).getString("openingHoursNorwegian"));
+				JPickupPoints.append(pickupPoint.toString() + "\n\n");
+				JPickupPoints.setCaretPosition(0);
+
+			}
+		} catch (JSONException | IOException e) {
+			System.out.println(e);
+		}
 
 	}// end Main
 
