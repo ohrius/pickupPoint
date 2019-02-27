@@ -16,6 +16,6 @@ public class pickupPoint {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s, %s,\n ≈pningstider: %s", navn, adresse, by, Âpningstider);
+		return String.format("%s, %s, %s,\n≈pningstider: %s", navn, adresse, by, Âpningstider);
 	}
 }
